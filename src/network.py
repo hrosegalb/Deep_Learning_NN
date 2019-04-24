@@ -6,35 +6,37 @@ from tensorflow import keras
 from keras.datasets import fashion_mnist
 from keras.utils import to_categorical
 
-(x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
+def load_fashion_mnist_data():
+    (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
+    # Normalize the data
+    train_images = train_images.astype('float32')
+    test_images = test_images.astype('float32')
 
-x_train = x_train / 255
-x_test = x_test / 255
+    train_images = train_images / 255
+    test_images = test_images / 255
 
-# Change the labels from integer to categorical data
-train_labels_one_hot = to_categorical(y_train)
-test_labels_one_hot = to_categorical(y_test)
+    # Change the labels from integer to categorical data
+    train_labels_one_hot = to_categorical(train_labels)
+    test_labels_one_hot = to_categorical(test_labels)
+    return train_images, train_labels_one_hot, test_images, test_labels_one_hot
+
  
-# Display the change for category label using one-hot encoding
-print('Original label 0 : ', y_train[0])
-print('After conversion to categorical ( one-hot ) : ', train_labels_one_hot[0])
+def build_and_train_model(train_images, train_labels_one_hot, test_images, test_labels_one_hot):
+    model = keras.Sequential([
+        keras.layers.Flatten(input_shape=(28, 28)),
+        keras.layers.Dense(30, activation=tf.nn.sigmoid),
+        keras.layers.Dense(10, activation=tf.nn.sigmoid)
+    ])
 
-model = keras.Sequential([
-    keras.layers.Flatten(input_shape=(28, 28)),
-    keras.layers.Dense(30, activation=tf.nn.sigmoid),
-    keras.layers.Dense(10, activation=tf.nn.sigmoid)
-])
+    model.compile(optimizer='sgd', 
+            loss='mean_squared_error',
+            metrics=['accuracy'])
 
-model.compile(optimizer='sgd', 
-              loss='mean_squared_error',
-              metrics=['accuracy'])
-
-history = model.fit(x_train, train_labels_one_hot, epochs=30, batch_size=10, verbose=1, validation_data=(x_test, test_labels_one_hot))
-test_loss, test_acc = model.evaluate(x_test, test_labels_one_hot)
-print("Evaluation result on Test Data : Loss = {}, accuracy = {}".format(test_loss, test_acc))
+    history = model.fit(train_images, train_labels_one_hot, epochs=30, batch_size=10, verbose=1, validation_data=(test_images, test_labels_one_hot))
+    test_loss, test_acc = model.evaluate(test_images, test_labels_one_hot)
+    print("Evaluation result on Test Data : Loss = {}, accuracy = {}".format(test_loss, test_acc))
+    return history
 
 # #Plot the Loss Curves
 # plt.figure(figsize=[8,6])
@@ -45,12 +47,22 @@ print("Evaluation result on Test Data : Loss = {}, accuracy = {}".format(test_lo
 # plt.ylabel('Loss',fontsize=16)
 # plt.title('Loss Curves',fontsize=16)
  
-#Plot the Accuracy Curves
-plt.figure(figsize=[8,6])
-plt.plot(history.history['acc'],'r',linewidth=3.0)
-plt.plot(history.history['val_acc'],'b',linewidth=3.0)
-plt.legend(['Training Accuracy', 'Validation Accuracy'],fontsize=18)
-plt.xlabel('Epochs ',fontsize=16)
-plt.ylabel('Accuracy',fontsize=16)
-plt.title('Accuracy Curves',fontsize=16)
-plt.show()
+def plot_accuracy(history):
+    #Plot the Accuracy Curves
+    plt.figure(figsize=[8,6])
+    plt.plot(history.history['acc'],'r',linewidth=3.0)
+    plt.plot(history.history['val_acc'],'b',linewidth=3.0)
+    plt.legend(['Training Accuracy', 'Test Accuracy'],fontsize=18)
+    plt.xlabel('Epochs ',fontsize=16)
+    plt.ylabel('Accuracy',fontsize=16)
+    plt.title('Accuracy Curves',fontsize=16)
+    plt.show()
+
+def main():
+    train_images, train_labels_one_hot, test_images, test_labels_one_hot = load_fashion_mnist_data()
+    history = build_and_train_model(train_images, train_labels_one_hot, test_images, test_labels_one_hot)
+    plot_accuracy(history)
+
+
+if __name__ == '__main__':
+    main()
