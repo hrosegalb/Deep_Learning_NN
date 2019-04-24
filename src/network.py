@@ -1,10 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-import tensorflow as tf
-from tensorflow import keras
+# import tensorflow as tf
+# from tensorflow import keras
+from keras import models
+from keras import layers
 from keras.datasets import fashion_mnist
 from keras.utils import to_categorical
+from keras import regularizers
 
 def load_fashion_mnist_data():
     (train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
@@ -16,25 +19,39 @@ def load_fashion_mnist_data():
     train_images = train_images / 255
     test_images = test_images / 255
 
+    # Change from 28x28 matrix to array of dimension 784
+    dimData = np.prod(train_images.shape[1:])
+    print("dimData: {}".format(dimData))
+    train_data = train_images.reshape(train_images.shape[0], dimData)
+    print("Reshaped training data: {}".format(train_data.shape))
+    test_data = test_images.reshape(test_images.shape[0], dimData)
+    print("Reshaped test data: {}".format(test_data.shape))
+
     # Change the labels from integer to categorical data
     train_labels_one_hot = to_categorical(train_labels)
     test_labels_one_hot = to_categorical(test_labels)
-    return train_images, train_labels_one_hot, test_images, test_labels_one_hot
+    return train_data, train_labels_one_hot, test_data, test_labels_one_hot
 
  
 def build_and_train_model(train_images, train_labels_one_hot, test_images, test_labels_one_hot):
-    model = keras.Sequential([
-        keras.layers.Flatten(input_shape=(28, 28)),
-        keras.layers.Dense(30, activation=tf.nn.sigmoid),
-        keras.layers.Dense(10, activation=tf.nn.sigmoid)
-    ])
+    # model = keras.Sequential([
+    #     keras.layers.Flatten(input_shape=(28, 28), kernel_regularizer=regularizers.l2(0.01)),
+    #     keras.layers.Dense(30, activation=tf.nn.sigmoid, kernel_regularizer=regularizers.l2(0.01)),
+    #     keras.layers.Dense(10, activation=tf.nn.sigmoid)
+    # ])
 
-    model.compile(optimizer='sgd', 
+    network = models.Sequential()
+
+    network.add(layers.Dense(784, input_shape= (784,), activation='sigmoid'))
+    network.add(layers.Dense(30, activation='sigmoid'))
+    network.add(layers.Dense(10, activation='sigmoid'))
+
+    network.compile(optimizer='sgd', 
             loss='mean_squared_error',
             metrics=['accuracy'])
 
-    history = model.fit(train_images, train_labels_one_hot, epochs=30, batch_size=10, verbose=1, validation_data=(test_images, test_labels_one_hot))
-    test_loss, test_acc = model.evaluate(test_images, test_labels_one_hot)
+    history = network.fit(train_images, train_labels_one_hot, epochs=30, batch_size=10, verbose=1, validation_data=(test_images, test_labels_one_hot))
+    test_loss, test_acc = network.evaluate(test_images, test_labels_one_hot)
     print("Evaluation result on Test Data : Loss = {}, accuracy = {}".format(test_loss, test_acc))
     return history
 
