@@ -10,11 +10,6 @@ from keras.optimizers import SGD
 
 
 ######################################################################################################
-# Hannah Galbraith                                                                                   #
-# CS510 Deep Learning                                                                                #
-# Homework 1                                                                                         #
-# 4/27/19                                                                                            #
-#                                                                                                    #
 # The following websites were used as references:                                                    #
 # https://www.learnopencv.com/image-classification-using-feedforward-neural-network-in-keras/        #
 # https://www.tensorflow.org/tutorials/keras/basic_classification                                    #
